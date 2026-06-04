@@ -1,0 +1,76 @@
+# GPT Image Agent
+
+独立的 ai-groupmate Agent 生图工具。
+
+## 做什么
+
+- 用户说“生成图片 / 画图 / 做图 / P图 / 改图 / 给某人头像做图”时，Agent 可以调用 `generate_and_send_image`。
+- 如果用户说“给 XX 用户头像加墨镜 / 用 XX 头像做赛博头像”，由主插件内置的 QQ 头像工具负责取头像。
+- 内置 `fetch_qq_avatar_references` 会下载头像并返回本地图片路径。
+- 头像路径随后传给 `generate_and_send_image.reference_image_paths`。
+- 有头像参考图时走编辑接口；没有参考图时走纯文本生成接口。
+- 生成成功后直接发送图片到当前群聊，并写入 `ChatHistory`。
+
+## Agent 工具
+
+- `generate_and_send_image`：生成并发送图片；需要头像参考图时接收 `reference_image_paths`。
+- QQ 头像匹配和下载已经拆到主插件内置系统工具。
+
+## 安装
+
+复制整个目录到 bot 数据目录：
+
+```bash
+cp -r tools/gpt_image_agent data/nonebot_plugin_ai_groupmate/tools/
+```
+
+部署后结构：
+
+```text
+data/nonebot_plugin_ai_groupmate/tools/
+└── gpt_image_agent/
+    └── __init__.py
+```
+
+要求宿主 `nonebot-plugin-ai-groupmate` 已支持用户自定义 Agent 工具目录，也就是能加载：
+
+```text
+data/nonebot_plugin_ai_groupmate/tools/<tool_name>/__init__.py
+```
+
+## 配置
+
+复制 `env.example` 到 bot 的 `.env`。
+
+主 `.env` 只需要暴露这两个：
+
+```dotenv
+ai_groupmate_image_agent__base_url=https://your-relay.example/v1
+ai_groupmate_image_agent__api_key=sk-xxxxxx
+```
+
+其它都有默认值：
+
+```text
+model=gpt-image-2
+size=1024x1024
+quality=auto
+generation_endpoint=/images/generations
+edit_endpoint=/images/edits
+edit_image_field_name=auto
+timeout_seconds=180
+download_timeout_seconds=30
+retry_attempts=2
+retry_delay_seconds=5
+max_prompt_length=1200
+max_reference_avatars=2
+enabled=true
+```
+
+如果以后你的中转接口图片字段不是 `image[]` 或 `image`，再额外加：
+
+```dotenv
+ai_groupmate_image_agent__edit_image_field_name=your_field_name
+```
+
+默认 `auto` 会先试 `image[]`，失败后试 `image`。
