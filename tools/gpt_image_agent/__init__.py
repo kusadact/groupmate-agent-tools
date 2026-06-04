@@ -648,7 +648,8 @@ def create_image_tool(ctx: OptionalToolContext, config: ImageAgentConfig):
         """
         启动后台图片生成任务，完成后发送到当前群聊。
 
-        只有用户明确要求生成、画、做、P、改一张图片时才调用。
+        只有用户明确要求生成、画、做、P、改造或风格化一张图片时才调用。
+        如果用户只是要求发送或查看原始 QQ 头像，不要调用本工具。
         如果用户要求“给某个用户头像做图 / 用某人头像生成”，必须先调用主插件内置的
         fetch_qq_avatar_references，再把返回的本地文件路径放进 reference_image_paths。
 
@@ -698,8 +699,9 @@ async def build(ctx: OptionalToolContext) -> OptionalToolBundle:
 
     image_tool = create_image_tool(ctx, config)
 
-    prompt = f"""- AI 生图：可使用 `generate_and_send_image` 生成并发送图片
-  - 只有用户明确要求“生成图片 / 画图 / 做图 / P图 / 改图 / 头像生成”时才调用
+    prompt = f"""- AI 生图：可使用 `generate_and_send_image` 生成并发送新图片
+  - 只有用户明确要求“生成图片 / 画图 / 做图 / P图 / 改图 / 风格化头像 / 头像二创”时才调用
+  - 用户只是要求“发送头像 / 发原头像 / 查看 QQ 头像 / 看看头像”时，不要调用本工具；应调用 `send_qq_avatar_image`
   - 用户只是聊天、评价图片、问你怎么看时，不要调用
   - `prompt` 必须是完整生图需求，包含主体、风格、构图、文字约束；需要头像参考时也写清头像处理要求
   - 用户说“给某人头像...”或“用某人的头像...”时，必须先调用主插件内置的 `fetch_qq_avatar_references`

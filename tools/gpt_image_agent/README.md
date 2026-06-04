@@ -4,7 +4,8 @@
 
 ## 做什么
 
-- 用户说“生成图片 / 画图 / 做图 / P图 / 改图 / 给某人头像做图”时，Agent 可以调用 `generate_and_send_image`。
+- 用户说“生成图片 / 画图 / 做图 / P图 / 改图 / 给某人头像做风格化二创”时，Agent 可以调用 `generate_and_send_image`。
+- 如果用户只是要求发送或查看原始 QQ 头像，应由主插件内置 `send_qq_avatar_image` 处理，不应调用本工具。
 - 如果用户说“给 XX 用户头像加墨镜 / 用 XX 头像做赛博头像”，由主插件内置的 QQ 头像工具负责取头像。
 - 内置 `fetch_qq_avatar_references` 会下载头像并返回本地图片路径。
 - 头像路径随后传给 `generate_and_send_image.reference_image_paths`。
