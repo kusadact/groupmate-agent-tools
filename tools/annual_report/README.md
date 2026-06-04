@@ -35,6 +35,7 @@ data/nonebot_plugin_ai_groupmate/tools/
 额外依赖见 `requirements.txt`。
 
 如果你使用的是新版 `nonebot-plugin-ai-groupmate`，这些依赖通常已经由主插件安装。
+工具基于主插件的用户自定义 Agent 工具接口，入口函数为 `build(ctx)`，返回 `OptionalToolBundle`。
 
 ## 使用方式
 
@@ -45,3 +46,4 @@ data/nonebot_plugin_ai_groupmate/tools/
 - 分析一下我的成分
 
 工具生成完成后会直接发送报告文本。
+如果当前请求已过期，工具会取消发送。

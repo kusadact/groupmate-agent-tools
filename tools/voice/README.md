@@ -56,3 +56,4 @@ ai_groupmate__voice_temperature=1.0
 - 发条语音
 
 工具会限制单次语音文本长度，避免生成过长语音。
+工具声明了 `ToolLimitSpec(tool_name="send_voice", run_limit=1)`，每轮 Agent 最多发送一次语音；如果当前请求已过期，工具会取消发送。

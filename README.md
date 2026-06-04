@@ -50,21 +50,39 @@ data/nonebot_plugin_ai_groupmate/tools/
 
 ## 工具规范
 
-每个工具模块至少需要提供 `build(ctx)`：
+主插件会从 `data/nonebot_plugin_ai_groupmate/tools` 加载 `<tool>.py` 或 `<tool>/__init__.py`；本仓库采用每个工具一个目录的形式。
+
+每个工具模块需要提供 `build(ctx)`，可选提供 `healthcheck(ctx)`；两者都可以是同步或异步函数。`build(ctx)` 应返回 `OptionalToolBundle`：
 
 ```python
-async def build(ctx):
-    ...
-```
+from typing import Any
 
-如果工具需要检查外部服务、配置项或依赖，也可以提供可选的 `healthcheck(ctx)`：
+from langchain.tools import ToolRuntime, tool
+from nonebot_plugin_ai_groupmate.agent.optional_tools import OptionalToolBundle, OptionalToolContext, ToolLimitSpec
 
-```python
-async def healthcheck(ctx):
+
+async def healthcheck(ctx: OptionalToolContext) -> tuple[bool, str]:
     return True, "ok"
+
+
+async def build(ctx: OptionalToolContext) -> OptionalToolBundle:
+    @tool("my_tool")
+    async def my_tool(text: str, runtime: ToolRuntime[Any]) -> str:
+        """工具说明会提供给模型。"""
+        # runtime 由主插件的 LangGraph 执行器注入，不需要模型填写。
+        return f"{runtime.context.session_id}: {text}"
+
+    return OptionalToolBundle(
+        name="my_tool",
+        tools=[my_tool],
+        prompt="- 需要调用 my_tool 时，优先给出明确的 text 参数",
+        tool_limits=[ToolLimitSpec(tool_name="my_tool", run_limit=1)],
+    )
 ```
 
-当健康检查失败时，主插件不会把这个工具注入 Agent prompt。
+当健康检查失败时，主插件不会把这个工具和它的 prompt 注入 Agent。`prompt` 会追加进本轮 Agent 工具提示；如果工具函数声明了 `runtime: ToolRuntime[Any]` 参数，主插件会自动注入当前会话和请求上下文。`tool_limits` 可限制本轮调用次数，`tool_name=None` 表示调整全局工具调用上限。
+
+长耗时工具应使用 `ctx.create_detached_task(...)` 启动后台任务，并在真正发送结果前检查 `ctx.can_continue`；发送成功后可调用 `ctx.mark_sent()` 标记本轮已有输出。
 
 ## 已包含工具
 
