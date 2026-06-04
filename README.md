@@ -24,10 +24,6 @@ tools/
 │   ├── README.md
 │   ├── env.example
 │   └── requirements.txt
-├── qq_avatar_describer/
-│   ├── __init__.py
-│   ├── README.md
-│   └── requirements.txt
 └── voice/
     ├── __init__.py
     ├── README.md
@@ -43,7 +39,6 @@ tools/
 mkdir -p data/nonebot_plugin_ai_groupmate/tools
 cp -r tools/annual_report data/nonebot_plugin_ai_groupmate/tools/
 cp -r tools/gpt_image_agent data/nonebot_plugin_ai_groupmate/tools/
-cp -r tools/qq_avatar_describer data/nonebot_plugin_ai_groupmate/tools/
 cp -r tools/voice data/nonebot_plugin_ai_groupmate/tools/
 ```
 
@@ -54,8 +49,6 @@ data/nonebot_plugin_ai_groupmate/tools/
 ├── annual_report/
 │   └── __init__.py
 ├── gpt_image_agent/
-│   └── __init__.py
-├── qq_avatar_describer/
 │   └── __init__.py
 └── voice/
     └── __init__.py
@@ -103,7 +96,6 @@ async def build(ctx: OptionalToolContext) -> OptionalToolBundle:
 
 - `annual_report`：根据当前群聊历史生成用户年度报告。
 - `gpt_image_agent`：调用 GPT Image 类接口生成并发送图片，可消费主插件内置 QQ 头像工具返回的参考图路径。
-- `qq_avatar_describer`：消费主插件内置 `fetch_qq_avatar_references` 返回的头像路径，调用多模态模型描述头像内容。
 - `voice`：调用 GPT-SoVITS 类服务，将短文本合成为语音并发送。
 
 ## 注意事项
