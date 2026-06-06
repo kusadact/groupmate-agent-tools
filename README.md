@@ -19,6 +19,11 @@ tools/
 │   ├── README.md
 │   ├── env.example
 │   └── requirements.txt
+├── find_femboy/
+│   ├── __init__.py
+│   ├── README.md
+│   ├── env.example
+│   └── requirements.txt
 ├── gpt_image_agent/
 │   ├── __init__.py
 │   ├── README.md
@@ -43,6 +48,7 @@ tools/
 ```bash
 mkdir -p data/nonebot_plugin_ai_groupmate/tools
 cp -r tools/annual_report data/nonebot_plugin_ai_groupmate/tools/
+cp -r tools/find_femboy data/nonebot_plugin_ai_groupmate/tools/
 cp -r tools/gpt_image_agent data/nonebot_plugin_ai_groupmate/tools/
 cp -r tools/scheduled_tasks data/nonebot_plugin_ai_groupmate/tools/
 cp -r tools/voice data/nonebot_plugin_ai_groupmate/tools/
@@ -53,6 +59,8 @@ cp -r tools/voice data/nonebot_plugin_ai_groupmate/tools/
 ```text
 data/nonebot_plugin_ai_groupmate/tools/
 ├── annual_report/
+│   └── __init__.py
+├── find_femboy/
 │   └── __init__.py
 ├── gpt_image_agent/
 │   └── __init__.py
@@ -103,6 +111,7 @@ async def build(ctx: OptionalToolContext) -> OptionalToolBundle:
 ## 已包含工具
 
 - `annual_report`：根据当前群聊历史生成用户年度报告。
+- `find_femboy`：从最近 20 条聊天记录里的非 bot 发言者中纯随机抽一个人，结合 v2 用户画像标签和 RAG 素材生成群聊整活文案。
 - `gpt_image_agent`：调用 GPT Image 类接口生成并发送图片，可消费主插件内置 QQ 头像工具返回的参考图路径。
 - `scheduled_tasks`：给 Agent 增加固定文本定时发送和到点重新进入 Agent 的预定任务能力。
 - `voice`：调用 GPT-SoVITS 类服务，将短文本合成为语音并发送。
