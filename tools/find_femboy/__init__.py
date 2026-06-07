@@ -13,13 +13,13 @@ from nonebot.log import logger
 from nonebot_plugin_alconna import UniMessage
 from nonebot_plugin_orm import get_session
 
-from nonebot_plugin_ai_groupmate.agent.optional_tools import (
+from nonebot_plugin_groupmate_agent.agent.optional_tools import (
     OptionalToolBundle,
     OptionalToolContext,
     ToolLimitSpec,
 )
-from nonebot_plugin_ai_groupmate.model import ChatHistory, UserRelation
-from nonebot_plugin_ai_groupmate.reply_guard import is_request_active, mark_request_sent
+from nonebot_plugin_groupmate_agent.model import ChatHistory, UserRelation
+from nonebot_plugin_groupmate_agent.reply_guard import is_request_active, mark_request_sent
 from sqlalchemy import Select
 
 PROMPT = """- 找男娘：当用户明确要求“找男娘 / 抓男娘 / 谁是男娘 / 群里的男娘”等群聊整活时，调用 `find_femboy_in_recent_chat`
@@ -190,7 +190,7 @@ async def _search_rag_context(
     profile: RelationProfile | None,
 ) -> str:
     try:
-        from nonebot_plugin_ai_groupmate.memory import DB
+        from nonebot_plugin_groupmate_agent.memory import DB
     except Exception as e:
         logger.info(f"找男娘工具无法加载 RAG: {type(e).__name__}: {e}")
         return ""
@@ -304,7 +304,7 @@ async def _generate_reply(
 输出中文纯文本，不用 Markdown，不要提数据库、RAG、模型或工具。
 控制在 120 字以内，1 到 3 句。
 第一句必须明确指出被抽中的人是群里的男娘，优先使用这个句式：群里的男娘就是：{user_name}。
-后面再给 2 到 3 个荒诞但轻量的理由，并保留“随机胡编/群聊整活”的语气。""",
+后面再给 2 到 3 个荒诞但轻量的理由。""",
             ),
             (
                 "user",

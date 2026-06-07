@@ -10,10 +10,10 @@ from nonebot_plugin_alconna import UniMessage
 from nonebot_plugin_orm import get_session
 from pydantic import BaseModel, Field
 
-from nonebot_plugin_ai_groupmate.agent.optional_tools import OptionalToolBundle, OptionalToolContext, ToolLimitSpec
-from nonebot_plugin_ai_groupmate.config import ScopedConfig
-from nonebot_plugin_ai_groupmate.model import ChatHistory
-from nonebot_plugin_ai_groupmate.reply_guard import is_request_active, mark_request_sent
+from nonebot_plugin_groupmate_agent.agent.optional_tools import OptionalToolBundle, OptionalToolContext, ToolLimitSpec
+from nonebot_plugin_groupmate_agent.config import ScopedConfig
+from nonebot_plugin_groupmate_agent.model import ChatHistory
+from nonebot_plugin_groupmate_agent.reply_guard import is_request_active, mark_request_sent
 
 _health_lock = asyncio.Lock()
 _tts_lock = asyncio.Lock()

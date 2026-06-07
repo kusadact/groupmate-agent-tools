@@ -9,13 +9,13 @@
 复制整个目录到 bot 数据目录：
 
 ```bash
-cp -r tools/voice data/nonebot_plugin_ai_groupmate/tools/
+cp -r tools/voice data/nonebot_plugin_groupmate_agent/tools/
 ```
 
 部署后结构：
 
 ```text
-data/nonebot_plugin_ai_groupmate/tools/
+data/nonebot_plugin_groupmate_agent/tools/
 └── voice/
     └── __init__.py
 ```
@@ -25,13 +25,13 @@ data/nonebot_plugin_ai_groupmate/tools/
 把 `env.example` 里的配置复制到你的 bot `.env`，然后填写实际地址：
 
 ```dotenv
-ai_groupmate__voice_enabled=true
-ai_groupmate__voice_base_url=http://127.0.0.1:9880
-ai_groupmate__voice_text_lang=zh
-ai_groupmate__voice_speed_factor=1.0
-ai_groupmate__voice_top_k=15
-ai_groupmate__voice_top_p=1.0
-ai_groupmate__voice_temperature=1.0
+groupmate_agent__voice_enabled=true
+groupmate_agent__voice_base_url=http://127.0.0.1:9880
+groupmate_agent__voice_text_lang=zh
+groupmate_agent__voice_speed_factor=1.0
+groupmate_agent__voice_top_k=15
+groupmate_agent__voice_top_p=1.0
+groupmate_agent__voice_temperature=1.0
 ```
 
 `voice_base_url` 应指向你的 TTS 服务根地址。工具默认使用：
@@ -45,7 +45,7 @@ ai_groupmate__voice_temperature=1.0
 
 额外依赖见 `requirements.txt`。
 
-如果你使用的是新版 `nonebot-plugin-ai-groupmate`，`httpx` 通常已经由主插件安装。
+如果你使用的是新版 `nonebot-plugin-groupmate-agent`，`httpx` 通常已经由主插件安装。
 
 ## 使用方式
 

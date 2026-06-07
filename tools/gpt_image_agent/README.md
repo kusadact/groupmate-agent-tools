@@ -1,6 +1,6 @@
 # GPT Image Agent
 
-独立的 ai-groupmate Agent 生图工具。
+独立的 Groupmate Agent 生图工具。
 
 ## 做什么
 
@@ -22,21 +22,21 @@
 复制整个目录到 bot 数据目录：
 
 ```bash
-cp -r tools/gpt_image_agent data/nonebot_plugin_ai_groupmate/tools/
+cp -r tools/gpt_image_agent data/nonebot_plugin_groupmate_agent/tools/
 ```
 
 部署后结构：
 
 ```text
-data/nonebot_plugin_ai_groupmate/tools/
+data/nonebot_plugin_groupmate_agent/tools/
 └── gpt_image_agent/
     └── __init__.py
 ```
 
-要求宿主 `nonebot-plugin-ai-groupmate` 已支持用户自定义 Agent 工具目录，也就是能加载：
+要求宿主 `nonebot-plugin-groupmate-agent` 已支持用户自定义 Agent 工具目录，也就是能加载：
 
 ```text
-data/nonebot_plugin_ai_groupmate/tools/<tool_name>/__init__.py
+data/nonebot_plugin_groupmate_agent/tools/<tool_name>/__init__.py
 ```
 
 ## 配置
@@ -46,8 +46,8 @@ data/nonebot_plugin_ai_groupmate/tools/<tool_name>/__init__.py
 主 `.env` 只需要暴露这两个：
 
 ```dotenv
-ai_groupmate_image_agent__base_url=https://your-relay.example/v1
-ai_groupmate_image_agent__api_key=sk-xxxxxx
+groupmate_agent_image_agent__base_url=https://your-relay.example/v1
+groupmate_agent_image_agent__api_key=sk-xxxxxx
 ```
 
 其它都有默认值：
@@ -71,7 +71,7 @@ enabled=true
 如果以后你的中转接口图片字段不是 `image[]` 或 `image`，再额外加：
 
 ```dotenv
-ai_groupmate_image_agent__edit_image_field_name=your_field_name
+groupmate_agent_image_agent__edit_image_field_name=your_field_name
 ```
 
 默认 `auto` 会先试 `image[]`，失败后试 `image`。

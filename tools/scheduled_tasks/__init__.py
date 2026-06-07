@@ -2,89 +2,22 @@ from __future__ import annotations
 
 import math
 import uuid
-import inspect
 import datetime
-from dataclasses import dataclass
 from typing import Any
 
+from nonebot import get_plugin_config
 from langchain.tools import tool
 from langchain_core.messages import HumanMessage
 from nonebot.log import logger
 from nonebot_plugin_alconna import Target, UniMessage
+from nonebot_plugin_apscheduler import scheduler
 from nonebot_plugin_orm import get_session
 from pydantic import BaseModel, Field
 from sqlalchemy import Select
 
-try:
-    from nonebot import get_plugin_config
-except Exception:
-    get_plugin_config = None
-
-try:
-    from nonebot_plugin_apscheduler import scheduler
-except Exception:
-    scheduler = None
-
-try:
-    from nonebot_plugin_ai_groupmate.agent.optional_tools import (
-        OptionalToolBundle,
-        OptionalToolContext,
-        ToolLimitSpec,
-    )
-except Exception:
-    try:
-        from nonebot_plugin_ai_groupmate.agent.optional_tools.types import (
-            OptionalToolBundle,
-            OptionalToolContext,
-            ToolLimitSpec,
-        )
-    except Exception:
-
-        @dataclass(frozen=True)
-        class ToolLimitSpec:
-            tool_name: str | None
-            run_limit: int
-
-        @dataclass
-        class OptionalToolBundle:
-            name: str
-            tools: list[Any] | None = None
-            prompt: str = ""
-            tool_limits: list[ToolLimitSpec] | None = None
-
-        @dataclass
-        class OptionalToolContext:
-            session_id: str
-            request_id: str | None = None
-            user_id: str | None = None
-            user_name: str | None = None
-            interface: Any = None
-            bot_id: str | None = None
-            history: list[Any] | None = None
-            direct_targets: list[dict[str, Any]] | None = None
-            emoji_like_candidate_ids: set[str] | None = None
-            has_direct_targets: bool = False
-            is_multi_direct_reply: bool = False
-            is_cross_user_direct_reply: bool = False
-            has_admin_permission: bool = False
-            is_private: bool = False
-            config: Any = None
-            model: Any = None
-            stop_words: list[str] | None = None
-            detach_request: Any = None
-            can_continue: Any = None
-            mark_sent: Any = None
-            clear_detached: Any = None
-            create_detached_task: Any = None
-
-from nonebot_plugin_ai_groupmate.model import ChatHistory, ChatHistorySchema
-
-try:
-    from nonebot_plugin_ai_groupmate.reply_guard import is_request_active
-except Exception:
-
-    async def is_request_active(session_id: str, request_id: str | None) -> bool:
-        return True
+from nonebot_plugin_groupmate_agent.agent.optional_tools import OptionalToolBundle, OptionalToolContext, ToolLimitSpec
+from nonebot_plugin_groupmate_agent.model import ChatHistory, ChatHistorySchema
+from nonebot_plugin_groupmate_agent.reply_guard import is_request_active
 
 
 SCHEDULED_AGENT_HISTORY_LIMIT = 20
@@ -104,7 +37,7 @@ class ScheduledTasksScopedConfig(BaseModel):
 
 
 class ScheduledTasksRootConfig(BaseModel):
-    ai_groupmate_scheduled_tasks: ScheduledTasksScopedConfig = Field(default_factory=ScheduledTasksScopedConfig)
+    groupmate_agent_scheduled_tasks: ScheduledTasksScopedConfig = Field(default_factory=ScheduledTasksScopedConfig)
 
 
 class ScheduleMessageArgs(BaseModel):
@@ -129,12 +62,6 @@ class ScheduleAgentTaskArgs(BaseModel):
 
 class ScheduledTaskError(RuntimeError):
     pass
-
-
-async def _maybe_await(value: Any) -> Any:
-    if inspect.isawaitable(value):
-        return await value
-    return value
 
 
 def _env_bool(name: str, default: bool) -> bool:
@@ -173,13 +100,12 @@ def _env_int(name: str, default: int, *, minimum: int, maximum: int) -> int:
 
 
 def _load_config() -> ScheduledTasksScopedConfig:
-    if get_plugin_config is not None:
-        try:
-            return get_plugin_config(ScheduledTasksRootConfig).ai_groupmate_scheduled_tasks
-        except Exception as e:
-            logger.warning(f"读取 scheduled_tasks 配置失败，回退到环境变量: {type(e).__name__}: {e}")
+    try:
+        return get_plugin_config(ScheduledTasksRootConfig).groupmate_agent_scheduled_tasks
+    except Exception as e:
+        logger.warning(f"读取 scheduled_tasks 配置失败，回退到环境变量: {type(e).__name__}: {e}")
 
-    prefix = "ai_groupmate_scheduled_tasks__"
+    prefix = "groupmate_agent_scheduled_tasks__"
     return ScheduledTasksScopedConfig(
         enabled=_env_bool(prefix + "enabled", True),
         min_delay_seconds=_env_float(prefix + "min_delay_seconds", DEFAULT_MIN_DELAY_SECONDS, minimum=0, maximum=3600),
@@ -199,25 +125,11 @@ def _load_config() -> ScheduledTasksScopedConfig:
 def _validate_config(config: ScheduledTasksScopedConfig) -> tuple[bool, str]:
     if not config.enabled:
         return False, "scheduled_tasks disabled"
-    if scheduler is None:
-        return False, "missing nonebot_plugin_apscheduler"
-    if _host_has_builtin_schedule_tools():
-        return False, "host already provides schedule tools"
     if config.max_delay_seconds <= 0:
         return False, "max_delay_seconds must be positive"
     if config.min_delay_seconds > config.max_delay_seconds:
         return False, "min_delay_seconds must be <= max_delay_seconds"
     return True, "ok"
-
-
-def _host_has_builtin_schedule_tools() -> bool:
-    try:
-        import nonebot_plugin_ai_groupmate.agent as agent_module
-    except Exception:
-        return False
-    return callable(getattr(agent_module, "create_schedule_message_tool", None)) and callable(
-        getattr(agent_module, "create_schedule_agent_task_tool", None)
-    )
 
 
 def _normalize_text(value: str | None) -> str:
@@ -349,16 +261,12 @@ async def _run_scheduled_agent_task(
     session_id: str,
     task: str,
     *,
-    is_private: bool,
     bot_id: str | None,
     bot_name: str,
     history_limit: int,
 ) -> None:
     try:
-        try:
-            import nonebot_plugin_ai_groupmate.agent as agent_module
-        except ImportError as e:
-            raise RuntimeError("当前 nonebot-plugin-ai-groupmate 版本不支持定时 agent 任务。") from e
+        from nonebot_plugin_groupmate_agent.agent import create_chat_agent, format_chat_history, make_agent_state
 
         async with get_session() as db_session:
             rows = (
@@ -375,14 +283,20 @@ async def _run_scheduled_agent_task(
             )
             history = [ChatHistorySchema.model_validate(row) for row in rows[::-1]]
 
-            graph, context_messages = await _create_scheduled_agent_graph(
-                agent_module,
+            graph, context_messages = await create_chat_agent(
                 db_session,
-                session_id=session_id,
-                history=history,
-                bot_id=bot_id,
-                bot_name=bot_name,
-                is_private=is_private,
+                session_id,
+                None,
+                bot_name,
+                bot_name,
+                history,
+                None,
+                None,
+                bot_id,
+                set(),
+                [],
+                None,
+                None,
             )
 
             prompt = f"""
@@ -400,110 +314,19 @@ async def _run_scheduled_agent_task(
 - 定时任务没有可用的原始消息事件，不要调用 `add_message_reaction`。
 - 任务完成后调用 `finish`。
 """
-            history_messages = await _format_scheduled_history(agent_module, db_session, history)
+            history_messages = await format_chat_history(
+                db_session,
+                history,
+                max_inline_images=0,
+                omit_images=True,
+            )
             final_messages = list(context_messages) + list(history_messages) + [HumanMessage(content=prompt)]
-            await graph.ainvoke(_make_scheduled_agent_state(agent_module, final_messages, session_id))
+            await graph.ainvoke(make_agent_state(final_messages, session_id, None))
             await db_session.commit()
 
         logger.info(f"[自定义定时Agent任务] 已执行 {session_id}: {task}")
     except Exception as e:
         logger.exception(f"[自定义定时Agent任务] 执行失败 {session_id}: {e}")
-
-
-async def _call_with_supported_kwargs(func: Any, **kwargs: Any) -> Any:
-    try:
-        signature = inspect.signature(func)
-    except (TypeError, ValueError):
-        return await _maybe_await(func(**kwargs))
-
-    parameters = signature.parameters
-    if any(param.kind == inspect.Parameter.VAR_KEYWORD for param in parameters.values()):
-        call_kwargs = kwargs
-    else:
-        call_kwargs = {key: value for key, value in kwargs.items() if key in parameters}
-    return await _maybe_await(func(**call_kwargs))
-
-
-async def _create_scheduled_agent_graph(
-    agent_module: Any,
-    db_session: Any,
-    *,
-    session_id: str,
-    history: list[ChatHistorySchema],
-    bot_id: str | None,
-    bot_name: str,
-    is_private: bool,
-) -> tuple[Any, list[Any]]:
-    factory = getattr(agent_module, "create_chat_graph", None)
-    if factory is None:
-        factory = getattr(agent_module, "create_chat_agent", None)
-    if factory is None:
-        raise RuntimeError("当前 nonebot-plugin-ai-groupmate 版本缺少 create_chat_graph/create_chat_agent。")
-
-    result = await _call_with_supported_kwargs(
-        factory,
-        db_session=db_session,
-        session_id=session_id,
-        request_id=None,
-        user_id=bot_name,
-        user_name=bot_name,
-        history=history,
-        interface=None,
-        role_map=None,
-        bot_id=bot_id,
-        emoji_like_candidate_ids=set(),
-        direct_targets=[],
-        bot=None,
-        event=None,
-        is_private=is_private,
-    )
-
-    if isinstance(result, tuple):
-        graph = result[0]
-        context_messages = list(result[1] or []) if len(result) > 1 else []
-        return graph, context_messages
-    return result, []
-
-
-async def _format_scheduled_history(
-    agent_module: Any,
-    db_session: Any,
-    history: list[ChatHistorySchema],
-) -> list[Any]:
-    formatter = getattr(agent_module, "format_chat_history", None)
-    if formatter is None:
-        return []
-
-    result = await _call_with_supported_kwargs(
-        formatter,
-        db_session=db_session,
-        history=history,
-        max_inline_images=0,
-        omit_images=True,
-    )
-    return list(result or [])
-
-
-def _make_scheduled_agent_state(agent_module: Any, final_messages: list[Any], session_id: str) -> dict[str, Any]:
-    make_agent_state = getattr(agent_module, "make_agent_state", None)
-    if make_agent_state is None:
-        try:
-            from nonebot_plugin_ai_groupmate.agent.graph import make_agent_state
-        except Exception:
-            make_agent_state = None
-    if make_agent_state is not None:
-        return dict(make_agent_state(final_messages, session_id, None))
-
-    return {
-        "messages": final_messages,
-        "session_id": session_id,
-        "request_id": None,
-        "reply_count": 0,
-        "tool_count": 0,
-        "reply_this_round": 0,
-        "reaction_this_round": 0,
-        "called_finish": 0,
-    }
 
 
 def create_schedule_message_tool(ctx: OptionalToolContext, config: ScheduledTasksScopedConfig):
@@ -540,7 +363,7 @@ def create_schedule_message_tool(ctx: OptionalToolContext, config: ScheduledTask
         except ScheduledTaskError as e:
             return str(e)
 
-        job_id = f"ai_groupmate_custom_schedule_{ctx.session_id}_{uuid.uuid4().hex}"
+        job_id = f"groupmate_agent_custom_schedule_{ctx.session_id}_{uuid.uuid4().hex}"
         scheduler.add_job(
             _send_scheduled_text,
             "date",
@@ -596,7 +419,7 @@ def create_schedule_agent_task_tool(ctx: OptionalToolContext, config: ScheduledT
         except ScheduledTaskError as e:
             return str(e)
 
-        job_id = f"ai_groupmate_custom_agent_schedule_{ctx.session_id}_{uuid.uuid4().hex}"
+        job_id = f"groupmate_agent_custom_agent_schedule_{ctx.session_id}_{uuid.uuid4().hex}"
         scheduler.add_job(
             _run_scheduled_agent_task,
             "date",
@@ -605,7 +428,6 @@ def create_schedule_agent_task_tool(ctx: OptionalToolContext, config: ScheduledT
             kwargs={
                 "session_id": ctx.session_id,
                 "task": normalized_task,
-                "is_private": _is_private_context(ctx, config),
                 "bot_id": getattr(ctx, "bot_id", None),
                 "bot_name": _bot_name(ctx),
                 "history_limit": config.agent_history_limit,

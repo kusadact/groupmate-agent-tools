@@ -19,14 +19,14 @@ from nonebot_plugin_orm import get_session
 from pydantic import BaseModel, Field
 
 try:
-    from nonebot_plugin_ai_groupmate.agent.optional_tools import (
+    from nonebot_plugin_groupmate_agent.agent.optional_tools import (
         OptionalToolBundle,
         OptionalToolContext,
         ToolLimitSpec,
     )
 except Exception:
     try:
-        from nonebot_plugin_ai_groupmate.agent.optional_tools.types import (
+        from nonebot_plugin_groupmate_agent.agent.optional_tools.types import (
             OptionalToolBundle,
             OptionalToolContext,
             ToolLimitSpec,
@@ -68,15 +68,15 @@ except Exception:
             clear_detached: Any = None
             create_detached_task: Any = None
 
-from nonebot_plugin_ai_groupmate.model import ChatHistory
+from nonebot_plugin_groupmate_agent.model import ChatHistory
 try:
-    from nonebot_plugin_ai_groupmate.reply_guard import is_request_active
+    from nonebot_plugin_groupmate_agent.reply_guard import is_request_active
 except Exception:
     async def is_request_active(session_id: str, request_id: str | None) -> bool:
         return True
 
 try:
-    from nonebot_plugin_ai_groupmate.reply_guard import mark_request_sent
+    from nonebot_plugin_groupmate_agent.reply_guard import mark_request_sent
 except Exception:
     def mark_request_sent(session_id: str, request_id: str | None) -> None:
         return None
@@ -120,7 +120,7 @@ class ImageAgentScopedConfig(BaseModel):
 
 
 class ImageAgentRootConfig(BaseModel):
-    ai_groupmate_image_agent: ImageAgentScopedConfig = Field(default_factory=ImageAgentScopedConfig)
+    groupmate_agent_image_agent: ImageAgentScopedConfig = Field(default_factory=ImageAgentScopedConfig)
 
 
 @dataclass(frozen=True)
@@ -185,12 +185,12 @@ def _load_config() -> ImageAgentConfig:
     try:
         from nonebot import get_plugin_config
 
-        scoped = get_plugin_config(ImageAgentRootConfig).ai_groupmate_image_agent
+        scoped = get_plugin_config(ImageAgentRootConfig).groupmate_agent_image_agent
         return _config_from_scoped(scoped)
     except Exception as e:
         logger.warning(f"读取 image agent 配置失败，回退到环境变量: {type(e).__name__}: {e}")
 
-    prefix = "ai_groupmate_image_agent__"
+    prefix = "groupmate_agent_image_agent__"
     return ImageAgentConfig(
         enabled=_env_bool(prefix + "enabled", True),
         base_url=os.getenv(prefix + "base_url", "").strip(),
@@ -234,11 +234,11 @@ def _validate_config(config: ImageAgentConfig) -> tuple[bool, str]:
     if not config.enabled:
         return False, "image agent disabled"
     if not config.base_url:
-        return False, "missing ai_groupmate_image_agent__base_url"
+        return False, "missing groupmate_agent_image_agent__base_url"
     if not config.api_key:
-        return False, "missing ai_groupmate_image_agent__api_key"
+        return False, "missing groupmate_agent_image_agent__api_key"
     if not config.model:
-        return False, "missing ai_groupmate_image_agent__model"
+        return False, "missing groupmate_agent_image_agent__model"
     return True, "ok"
 
 

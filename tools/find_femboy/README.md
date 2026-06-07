@@ -4,7 +4,7 @@
 
 它会从主插件传入的最近 20 条聊天记录里，筛选非 bot 发言者，然后纯随机抽一个人，实际艾特这个人，并发送一条明确指认“群里的男娘就是：某某”的玩笑文案。
 
-抽中目标后，工具会只读取主插件当前 v2 用户画像表 `nonebot_plugin_ai_groupmate_userrelation_v2` 中的标签和关系状态，把它们作为编理由素材。标签不会参与抽签，也不会改变随机概率。
+抽中目标后，工具会只读取主插件当前用户画像表 `nonebot_plugin_groupmate_agent_userrelation` 中的标签和关系状态，把它们作为编理由素材。标签不会参与抽签，也不会改变随机概率。
 
 “男娘”在这个工具里只作为群聊玩笑标签处理，不作真实身份、性别、性取向或性别认同判断。工具会尽量把输出写成明显的随机整活和胡编理由。
 
@@ -13,13 +13,13 @@
 复制整个目录到 bot 数据目录：
 
 ```bash
-cp -r tools/find_femboy data/nonebot_plugin_ai_groupmate/tools/
+cp -r tools/find_femboy data/nonebot_plugin_groupmate_agent/tools/
 ```
 
 部署后结构：
 
 ```text
-data/nonebot_plugin_ai_groupmate/tools/
+data/nonebot_plugin_groupmate_agent/tools/
 └── find_femboy/
     └── __init__.py
 ```
@@ -32,10 +32,10 @@ data/nonebot_plugin_ai_groupmate/tools/
 
 - 最近聊天记录上下文 `ctx.history`
 - 当前 Agent 使用的 LLM
-- v2 用户画像表 `nonebot_plugin_ai_groupmate_userrelation_v2`
+- 用户画像表 `nonebot_plugin_groupmate_agent_userrelation`
 - 可选的聊天 RAG 数据库
 
-如果 v2 画像不存在、RAG 未启用或检索失败，工具会自动降级为只使用最近 20 条聊天记录。
+如果用户画像不存在、RAG 未启用或检索失败，工具会自动降级为只使用最近 20 条聊天记录。
 
 ## 使用方式
 

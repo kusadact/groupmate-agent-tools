@@ -1,6 +1,6 @@
 # 定时任务工具
 
-这个工具给 `nonebot-plugin-ai-groupmate` 的 Agent 增加预定任务能力。
+这个工具给 `nonebot-plugin-groupmate-agent` 的 Agent 增加预定任务能力。
 
 它参考了上游最新提交里内置的定时任务实现，提供两个工具：
 
@@ -12,39 +12,39 @@
 复制整个目录到 bot 数据目录：
 
 ```bash
-cp -r tools/scheduled_tasks data/nonebot_plugin_ai_groupmate/tools/
+cp -r tools/scheduled_tasks data/nonebot_plugin_groupmate_agent/tools/
 ```
 
 部署后结构：
 
 ```text
-data/nonebot_plugin_ai_groupmate/tools/
+data/nonebot_plugin_groupmate_agent/tools/
 └── scheduled_tasks/
     └── __init__.py
 ```
 
 ## 依赖
 
-这个工具需要宿主环境已安装并加载：
+这个工具面向当前 `nonebot-plugin-groupmate-agent` fork 的 `dev` 版自定义工具接口，需要宿主环境已安装并加载：
 
 - `nonebot-plugin-apscheduler`
 - `nonebot-plugin-alconna`
 - `nonebot-plugin-orm`
 
-新版 `nonebot-plugin-ai-groupmate` 通常已经依赖 `nonebot-plugin-apscheduler`。如果你的 bot 环境缺少它，请安装 `requirements.txt` 里的依赖。
+当前 `dev` 版 `nonebot-plugin-groupmate-agent` 已依赖 `nonebot-plugin-apscheduler`。如果你的 bot 环境缺少它，请安装 `requirements.txt` 里的依赖。
 
 ## 配置
 
 工具默认启用。可选配置见 `env.example`：
 
 ```dotenv
-ai_groupmate_scheduled_tasks__enabled=true
-ai_groupmate_scheduled_tasks__min_delay_seconds=10
-ai_groupmate_scheduled_tasks__max_delay_seconds=604800
-ai_groupmate_scheduled_tasks__misfire_grace_time_seconds=300
-ai_groupmate_scheduled_tasks__agent_history_limit=20
-ai_groupmate_scheduled_tasks__record_text_history=true
-ai_groupmate_scheduled_tasks__default_private=false
+groupmate_agent_scheduled_tasks__enabled=true
+groupmate_agent_scheduled_tasks__min_delay_seconds=10
+groupmate_agent_scheduled_tasks__max_delay_seconds=604800
+groupmate_agent_scheduled_tasks__misfire_grace_time_seconds=300
+groupmate_agent_scheduled_tasks__agent_history_limit=20
+groupmate_agent_scheduled_tasks__record_text_history=true
+groupmate_agent_scheduled_tasks__default_private=false
 ```
 
 说明：
@@ -69,7 +69,7 @@ Agent 会按任务类型选择：
 - 固定内容提醒、转告、发送文本：`schedule_message`
 - 到点后需要查最新信息、搜索、挑表情包、重新判断上下文：`schedule_agent_task`
 
-`schedule_agent_task` 会在执行时读取当前会话最近聊天记录，并调用主插件的 `create_chat_graph` 重新跑一轮 Agent。它和上游实现一样，没有原始消息事件，所以到点执行时不能使用消息 reaction。
+`schedule_agent_task` 会在执行时读取当前会话最近聊天记录，并调用主插件的 `create_chat_agent` 重新跑一轮 Agent。定时任务没有原始消息事件，所以到点执行时不能使用消息 reaction。
 
 ## 注意事项
 

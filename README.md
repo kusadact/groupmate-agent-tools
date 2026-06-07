@@ -1,11 +1,11 @@
-# AI Groupmate Tools
+# Groupmate Agent Tools
 
-这里存放 `nonebot-plugin-ai-groupmate` 的用户自定义 Agent 工具。
+这里存放 `nonebot-plugin-groupmate-agent` 的用户自定义 Agent 工具。
 
 这些工具不会随主插件一起发布，需要手动放到机器人的数据目录：
 
 ```text
-data/nonebot_plugin_ai_groupmate/tools/
+data/nonebot_plugin_groupmate_agent/tools/
 ```
 
 ## 目录结构
@@ -46,18 +46,18 @@ tools/
 把需要的工具目录复制到机器人的工具目录：
 
 ```bash
-mkdir -p data/nonebot_plugin_ai_groupmate/tools
-cp -r tools/annual_report data/nonebot_plugin_ai_groupmate/tools/
-cp -r tools/find_femboy data/nonebot_plugin_ai_groupmate/tools/
-cp -r tools/gpt_image_agent data/nonebot_plugin_ai_groupmate/tools/
-cp -r tools/scheduled_tasks data/nonebot_plugin_ai_groupmate/tools/
-cp -r tools/voice data/nonebot_plugin_ai_groupmate/tools/
+mkdir -p data/nonebot_plugin_groupmate_agent/tools
+cp -r tools/annual_report data/nonebot_plugin_groupmate_agent/tools/
+cp -r tools/find_femboy data/nonebot_plugin_groupmate_agent/tools/
+cp -r tools/gpt_image_agent data/nonebot_plugin_groupmate_agent/tools/
+cp -r tools/scheduled_tasks data/nonebot_plugin_groupmate_agent/tools/
+cp -r tools/voice data/nonebot_plugin_groupmate_agent/tools/
 ```
 
 最终结构应类似：
 
 ```text
-data/nonebot_plugin_ai_groupmate/tools/
+data/nonebot_plugin_groupmate_agent/tools/
 ├── annual_report/
 │   └── __init__.py
 ├── find_femboy/
@@ -74,7 +74,7 @@ data/nonebot_plugin_ai_groupmate/tools/
 
 ## 工具规范
 
-主插件会从 `data/nonebot_plugin_ai_groupmate/tools` 加载 `<tool>.py` 或 `<tool>/__init__.py`；本仓库采用每个工具一个目录的形式。
+主插件会从 `data/nonebot_plugin_groupmate_agent/tools` 加载 `<tool>.py` 或 `<tool>/__init__.py`；本仓库采用每个工具一个目录的形式。
 
 每个工具模块需要提供 `build(ctx)`，可选提供 `healthcheck(ctx)`；两者都可以是同步或异步函数。`build(ctx)` 应返回 `OptionalToolBundle`：
 
@@ -82,7 +82,7 @@ data/nonebot_plugin_ai_groupmate/tools/
 from typing import Any
 
 from langchain.tools import ToolRuntime, tool
-from nonebot_plugin_ai_groupmate.agent.optional_tools import OptionalToolBundle, OptionalToolContext, ToolLimitSpec
+from nonebot_plugin_groupmate_agent.agent.optional_tools import OptionalToolBundle, OptionalToolContext, ToolLimitSpec
 
 
 async def healthcheck(ctx: OptionalToolContext) -> tuple[bool, str]:
@@ -111,7 +111,7 @@ async def build(ctx: OptionalToolContext) -> OptionalToolBundle:
 ## 已包含工具
 
 - `annual_report`：根据当前群聊历史生成用户年度报告。
-- `find_femboy`：从最近 20 条聊天记录里的非 bot 发言者中纯随机抽一个人，结合 v2 用户画像标签和 RAG 素材生成群聊整活文案。
+- `find_femboy`：从最近 20 条聊天记录里的非 bot 发言者中纯随机抽一个人，结合用户画像标签和 RAG 素材生成群聊整活文案。
 - `gpt_image_agent`：调用 GPT Image 类接口生成并发送图片，可消费主插件内置 QQ 头像工具返回的参考图路径。
 - `scheduled_tasks`：给 Agent 增加固定文本定时发送和到点重新进入 Agent 的预定任务能力。
 - `voice`：调用 GPT-SoVITS 类服务，将短文本合成为语音并发送。

@@ -9,13 +9,13 @@
 复制整个目录到 bot 数据目录：
 
 ```bash
-cp -r tools/annual_report data/nonebot_plugin_ai_groupmate/tools/
+cp -r tools/annual_report data/nonebot_plugin_groupmate_agent/tools/
 ```
 
 部署后结构：
 
 ```text
-data/nonebot_plugin_ai_groupmate/tools/
+data/nonebot_plugin_groupmate_agent/tools/
 └── annual_report/
     └── __init__.py
 ```
@@ -34,7 +34,7 @@ data/nonebot_plugin_ai_groupmate/tools/
 
 额外依赖见 `requirements.txt`。
 
-如果你使用的是新版 `nonebot-plugin-ai-groupmate`，这些依赖通常已经由主插件安装。
+如果你使用的是新版 `nonebot-plugin-groupmate-agent`，这些依赖通常已经由主插件安装。
 工具基于主插件的用户自定义 Agent 工具接口，入口函数为 `build(ctx)`，返回 `OptionalToolBundle`。
 
 ## 使用方式

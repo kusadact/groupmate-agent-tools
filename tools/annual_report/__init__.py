@@ -12,9 +12,9 @@ from nonebot_plugin_alconna import UniMessage
 from nonebot_plugin_orm import get_session
 from sqlalchemy import Select, desc, extract, func
 
-from nonebot_plugin_ai_groupmate.agent.optional_tools import OptionalToolBundle, OptionalToolContext
-from nonebot_plugin_ai_groupmate.model import ChatHistory, UserRelation
-from nonebot_plugin_ai_groupmate.reply_guard import is_request_active, mark_request_sent
+from nonebot_plugin_groupmate_agent.agent.optional_tools import OptionalToolBundle, OptionalToolContext
+from nonebot_plugin_groupmate_agent.model import ChatHistory, UserRelation
+from nonebot_plugin_groupmate_agent.reply_guard import is_request_active, mark_request_sent
 
 PROMPT = """- 若用户提到“年度报告 / 个人总结 / 成分分析”，直接调用 `generate_and_send_annual_report`；
   工具完成后只回复“请查收~”，不要复述报告
