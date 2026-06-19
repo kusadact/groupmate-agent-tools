@@ -19,6 +19,11 @@ tools/
 │   ├── README.md
 │   ├── env.example
 │   └── requirements.txt
+├── chat_stats_sql/
+│   ├── __init__.py
+│   ├── README.md
+│   ├── env.example
+│   └── requirements.txt
 ├── find_femboy/
 │   ├── __init__.py
 │   ├── README.md
@@ -53,6 +58,7 @@ tools/
 ```bash
 mkdir -p data/nonebot_plugin_groupmate_agent/tools
 cp -r tools/annual_report data/nonebot_plugin_groupmate_agent/tools/
+cp -r tools/chat_stats_sql data/nonebot_plugin_groupmate_agent/tools/
 cp -r tools/find_femboy data/nonebot_plugin_groupmate_agent/tools/
 cp -r tools/gpt_image_agent data/nonebot_plugin_groupmate_agent/tools/
 cp -r tools/poke data/nonebot_plugin_groupmate_agent/tools/
@@ -65,6 +71,8 @@ cp -r tools/voice data/nonebot_plugin_groupmate_agent/tools/
 ```text
 data/nonebot_plugin_groupmate_agent/tools/
 ├── annual_report/
+│   └── __init__.py
+├── chat_stats_sql/
 │   └── __init__.py
 ├── find_femboy/
 │   └── __init__.py
@@ -119,6 +127,7 @@ async def build(ctx: OptionalToolContext) -> OptionalToolBundle:
 ## 已包含工具
 
 - `annual_report`：根据当前群聊历史生成用户年度报告。
+- `chat_stats_sql`：使用受控 SQLAlchemy 查询统计当前群聊历史里的次数、数量和排行，和 RAG 历史语义检索分工区分。
 - `find_femboy`：从最近 20 条聊天记录里的非 bot 发言者中纯随机抽一个人，结合用户画像标签和 RAG 素材生成群聊整活文案。
 - `gpt_image_agent`：调用 GPT Image 类接口生成并发送图片，可消费主插件内置 QQ 头像工具返回的参考图路径。
 - `poke`：让 Agent 在用户明确要求时戳一戳群友，每轮最多调用 3 次。
