@@ -14,6 +14,7 @@ from nonebot_plugin_alconna import UniMessage
 from nonebot_plugin_orm import get_session
 
 from nonebot_plugin_groupmate_agent.agent.optional_tools import (
+    AgentSkill,
     OptionalToolBundle,
     OptionalToolContext,
     ToolLimitSpec,
@@ -22,7 +23,7 @@ from nonebot_plugin_groupmate_agent.model import ChatHistory, UserRelation
 from nonebot_plugin_groupmate_agent.reply_guard import is_request_active, mark_request_sent
 from sqlalchemy import Select
 
-PROMPT = """- 找男娘：当用户明确要求“找男娘 / 抓男娘 / 谁是男娘 / 群里的男娘”等群聊整活时，调用 `find_femboy_in_recent_chat`
+SKILL_PROMPT = """- 找男娘：当用户明确要求“找男娘 / 抓男娘 / 谁是男娘 / 群里的男娘”等群聊整活时，调用 `find_femboy_in_recent_chat`
   - 工具会从主插件传入的最近 20 条聊天记录里的非 bot 发言者中纯随机抽一个人
   - 工具发送结果时会实际艾特被抽中的人
   - 工具会把“男娘”当群聊玩笑标签处理，不作真实身份判断
@@ -462,6 +463,13 @@ async def build(ctx: OptionalToolContext) -> OptionalToolBundle:
     return OptionalToolBundle(
         name="find_femboy",
         tools=[create_find_femboy_tool(ctx)],
-        prompt=PROMPT,
+        skills=[
+            AgentSkill(
+                name="find_femboy",
+                description="用户明确要求在群聊中找男娘、抓男娘或进行相关整活时使用。",
+                prompt=SKILL_PROMPT,
+                tool_names=("find_femboy_in_recent_chat",),
+            )
+        ],
         tool_limits=[ToolLimitSpec(tool_name="find_femboy_in_recent_chat", run_limit=1)],
     )
