@@ -15,7 +15,7 @@ from nonebot_plugin_orm import get_session
 from pydantic import BaseModel, Field
 from sqlalchemy import Select
 
-from nonebot_plugin_groupmate_agent.agent.optional_tools import OptionalToolBundle, OptionalToolContext, ToolLimitSpec
+from nonebot_plugin_groupmate_agent.agent.optional_tools import AgentSkill, OptionalToolBundle, OptionalToolContext, ToolLimitSpec
 from nonebot_plugin_groupmate_agent.model import ChatHistory, ChatHistorySchema
 from nonebot_plugin_groupmate_agent.reply_guard import is_request_active
 
@@ -453,7 +453,7 @@ async def build(ctx: OptionalToolContext) -> OptionalToolBundle:
 
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     max_days = config.max_delay_seconds / 86400
-    prompt = f"""- 定时任务：可使用 `schedule_message` 或 `schedule_agent_task`
+    skill_prompt = f"""- 定时任务：可使用 `schedule_message` 或 `schedule_agent_task`
   - 当前本地时间：{now}
   - 用户要求几分钟/几小时后提醒、转告或发送固定文本时，调用 `schedule_message`
   - 用户要求到点后再查询最新信息、搜索网页、挑选表情包、根据当时情况处理，或任务内容不是固定文本时，调用 `schedule_agent_task`
@@ -471,7 +471,14 @@ async def build(ctx: OptionalToolContext) -> OptionalToolBundle:
             create_schedule_message_tool(ctx, config),
             create_schedule_agent_task_tool(ctx, config),
         ],
-        prompt=prompt,
+        skills=[
+            AgentSkill(
+                name="scheduled_tasks",
+                description="用户要求提醒、定时发送或到点执行任务时使用。",
+                prompt=skill_prompt,
+                tool_names=("schedule_message", "schedule_agent_task"),
+            )
+        ],
         tool_limits=[
             ToolLimitSpec(tool_name="schedule_message", run_limit=1),
             ToolLimitSpec(tool_name="schedule_agent_task", run_limit=1),
