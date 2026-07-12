@@ -10,7 +10,7 @@ from nonebot_plugin_alconna import UniMessage
 from nonebot_plugin_orm import get_session
 from pydantic import BaseModel, Field
 
-from nonebot_plugin_groupmate_agent.agent.optional_tools import OptionalToolBundle, OptionalToolContext, ToolLimitSpec
+from nonebot_plugin_groupmate_agent.agent.optional_tools import AgentSkill, OptionalToolBundle, OptionalToolContext, ToolLimitSpec
 from nonebot_plugin_groupmate_agent.config import ScopedConfig
 from nonebot_plugin_groupmate_agent.model import ChatHistory
 from nonebot_plugin_groupmate_agent.reply_guard import is_request_active, mark_request_sent
@@ -363,7 +363,7 @@ async def build(ctx: OptionalToolContext) -> OptionalToolBundle:
     else:
         voice_text_lang_instruction = "  - 健康检查当前没有返回可选 `text_lang` 列表时，不要自己猜新的值\n"
 
-    prompt = f"""- 语音：可使用 `send_voice` 合成并发送语音
+    skill_prompt = f"""- 语音：可使用 `send_voice` 合成并发送语音
   - 只有用户明确要求“发语音 / 用语音说 / 念出来 / 读出来”时才使用
   - 语音内容必须短，优先一句话，避免长段落
   - `content` 里只放最终要念出来的文本，不要把参数说明、括号解释、舞台指令写进去
@@ -381,6 +381,13 @@ async def build(ctx: OptionalToolContext) -> OptionalToolBundle:
     return OptionalToolBundle(
         name="voice",
         tools=[create_voice_tool(ctx.session_id, ctx.request_id, ctx.config, ctx.config.bot_name)],
-        prompt=prompt,
+        skills=[
+            AgentSkill(
+                name="voice_synthesis",
+                description="用户明确要求发语音、朗读或用语音表达时使用。",
+                prompt=skill_prompt,
+                tool_names=("send_voice",),
+            )
+        ],
         tool_limits=[ToolLimitSpec(tool_name="send_voice", run_limit=1)],
     )
