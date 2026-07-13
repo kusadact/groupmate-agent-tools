@@ -24,6 +24,11 @@ tools/
 │   ├── README.md
 │   ├── env.example
 │   └── requirements.txt
+├── danbooru_setu/
+│   ├── __init__.py
+│   ├── README.md
+│   ├── env.example
+│   └── requirements.txt
 ├── find_femboy/
 │   ├── __init__.py
 │   ├── README.md
@@ -35,6 +40,13 @@ tools/
 │   ├── env.example
 │   └── requirements.txt
 ├── poke/
+│   ├── __init__.py
+│   ├── README.md
+│   ├── env.example
+│   └── requirements.txt
+├── recall_message/
+│   ├── __init__.py
+│   └── README.md
 ├── read_forward_message/
 │   ├── __init__.py
 │   ├── README.md
@@ -60,9 +72,11 @@ tools/
 mkdir -p data/nonebot_plugin_groupmate_agent/tools
 cp -r tools/annual_report data/nonebot_plugin_groupmate_agent/tools/
 cp -r tools/chat_stats_sql data/nonebot_plugin_groupmate_agent/tools/
+cp -r tools/danbooru_setu data/nonebot_plugin_groupmate_agent/tools/
 cp -r tools/find_femboy data/nonebot_plugin_groupmate_agent/tools/
 cp -r tools/gpt_image_agent data/nonebot_plugin_groupmate_agent/tools/
 cp -r tools/poke data/nonebot_plugin_groupmate_agent/tools/
+cp -r tools/recall_message data/nonebot_plugin_groupmate_agent/tools/
 cp -r tools/read_forward_message data/nonebot_plugin_groupmate_agent/tools/
 cp -r tools/scheduled_tasks data/nonebot_plugin_groupmate_agent/tools/
 cp -r tools/voice data/nonebot_plugin_groupmate_agent/tools/
@@ -76,11 +90,16 @@ data/nonebot_plugin_groupmate_agent/tools/
 │   └── __init__.py
 ├── chat_stats_sql/
 │   └── __init__.py
+├── danbooru_setu/
+│   └── __init__.py
 ├── find_femboy/
 │   └── __init__.py
 ├── gpt_image_agent/
 │   └── __init__.py
 ├── poke/
+│   └── __init__.py
+├── recall_message/
+│   └── __init__.py
 ├── read_forward_message/
 │   └── __init__.py
 ├── scheduled_tasks/
@@ -143,9 +162,11 @@ async def build(ctx: OptionalToolContext) -> OptionalToolBundle:
 
 - `annual_report`：根据当前群聊历史生成用户年度报告。
 - `chat_stats_sql`：使用受控 SQLAlchemy 查询统计当前群聊历史里的次数、数量和排行，和 RAG 历史语义检索分工区分。
+- `danbooru_setu`：按用户提供的角色、作品或属性 tag 搜索并发送 Danbooru 图片。
 - `find_femboy`：从最近 20 条聊天记录里的非 bot 发言者中纯随机抽一个人，结合用户画像标签和 RAG 素材生成群聊整活文案。
 - `gpt_image_agent`：调用 GPT Image 类接口生成并发送图片，可消费主插件内置 QQ 头像工具返回的参考图路径。
 - `poke`：让 Agent 在用户明确要求时戳一戳群友，每轮最多调用 3 次。
+- `recall_message`：在理由充分且权限允许时撤回消息。
 - `read_forward_message`：读取并总结 QQ 合并转发消息。
 - `scheduled_tasks`：给 Agent 增加固定文本定时发送和到点重新进入 Agent 的预定任务能力。
 - `voice`：调用 GPT-SoVITS 类服务，将短文本合成为语音并发送。
