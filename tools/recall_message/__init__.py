@@ -17,10 +17,12 @@ from pydantic import BaseModel, Field
 _optional_tools_module = sys.modules.get("nonebot_plugin_groupmate_agent.agent.optional_tools")
 _optional_types_module = sys.modules.get("nonebot_plugin_groupmate_agent.agent.optional_tools.types")
 if _optional_tools_module is not None:
+    AgentSkill = _optional_tools_module.AgentSkill
     OptionalToolBundle = _optional_tools_module.OptionalToolBundle
     OptionalToolContext = _optional_tools_module.OptionalToolContext
     ToolLimitSpec = _optional_tools_module.ToolLimitSpec
 elif _optional_types_module is not None:
+    AgentSkill = _optional_types_module.AgentSkill
     OptionalToolBundle = _optional_types_module.OptionalToolBundle
     OptionalToolContext = _optional_types_module.OptionalToolContext
     ToolLimitSpec = _optional_types_module.ToolLimitSpec
@@ -31,11 +33,19 @@ else:
         tool_name: str | None
         run_limit: int
 
+    @dataclass(frozen=True)
+    class AgentSkill:
+        name: str
+        description: str
+        prompt: Any
+        tool_names: tuple[str, ...] = ()
+
     @dataclass
     class OptionalToolBundle:
         name: str
         tools: list[Any] | None = None
         prompt: str = ""
+        skills: list[AgentSkill] | None = None
         tool_limits: list[ToolLimitSpec] | None = None
 
     @dataclass
@@ -686,7 +696,7 @@ async def healthcheck(ctx: OptionalToolContext) -> tuple[bool, str]:
     return True, "ok"
 
 
-def _build_prompt(ctx: OptionalToolContext) -> str:
+def _build_skill_prompt(ctx: OptionalToolContext) -> str:
     permission_line = (
         "  - 你现在有群管理权限：可以在理由充分时撤回他人消息，也可以撤回自己的消息。"
         if getattr(ctx, "has_admin_permission", False)
@@ -711,6 +721,13 @@ async def build(ctx: OptionalToolContext) -> OptionalToolBundle:
     return OptionalToolBundle(
         name="recall_message",
         tools=[create_recall_tool(ctx)],
-        prompt=_build_prompt(ctx),
+        skills=[
+            AgentSkill(
+                name="recall_message",
+                description="需要判断并执行消息撤回时使用。",
+                prompt=_build_skill_prompt(ctx),
+                tool_names=("recall_message",),
+            )
+        ],
         tool_limits=[ToolLimitSpec(tool_name="recall_message", run_limit=1)],
     )
