@@ -252,7 +252,7 @@ async def build(ctx: OptionalToolContext) -> OptionalToolBundle:
         skills=[
             AgentSkill(
                 name="annual_report",
-                description="用户明确要求年度报告、个人总结或成分分析时生成报告。",
+                description="用户明确要求年度报告时生成报告。",
                 prompt=SKILL_PROMPT,
                 tool_names=("generate_and_send_annual_report",),
             )
