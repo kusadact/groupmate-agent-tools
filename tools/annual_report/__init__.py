@@ -12,11 +12,11 @@ from nonebot_plugin_alconna import UniMessage
 from nonebot_plugin_orm import get_session
 from sqlalchemy import Select, desc, extract, func
 
-from nonebot_plugin_groupmate_agent.agent.optional_tools import OptionalToolBundle, OptionalToolContext
+from nonebot_plugin_groupmate_agent.agent.optional_tools import AgentSkill, OptionalToolBundle, OptionalToolContext
 from nonebot_plugin_groupmate_agent.model import ChatHistory, UserRelation
 from nonebot_plugin_groupmate_agent.reply_guard import is_request_active, mark_request_sent
 
-PROMPT = """- 若用户提到“年度报告 / 个人总结 / 成分分析”，直接调用 `generate_and_send_annual_report`；
+SKILL_PROMPT = """- 若用户提到“年度报告 / 个人总结 / 成分分析”，直接调用 `generate_and_send_annual_report`；
   工具完成后只回复“请查收~”，不要复述报告
 """
 
@@ -246,4 +246,15 @@ def create_report_tool(ctx: OptionalToolContext):
 async def build(ctx: OptionalToolContext) -> OptionalToolBundle:
     if ctx.is_cross_user_direct_reply:
         return OptionalToolBundle(name="report")
-    return OptionalToolBundle(name="report", tools=[create_report_tool(ctx)], prompt=PROMPT)
+    return OptionalToolBundle(
+        name="report",
+        tools=[create_report_tool(ctx)],
+        skills=[
+            AgentSkill(
+                name="annual_report",
+                description="用户明确要求年度报告、个人总结或成分分析时生成报告。",
+                prompt=SKILL_PROMPT,
+                tool_names=("generate_and_send_annual_report",),
+            )
+        ],
+    )

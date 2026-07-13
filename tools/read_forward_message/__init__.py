@@ -20,10 +20,12 @@ from pydantic import BaseModel, Field
 _optional_tools_module = sys.modules.get("nonebot_plugin_groupmate_agent.agent.optional_tools")
 _optional_types_module = sys.modules.get("nonebot_plugin_groupmate_agent.agent.optional_tools.types")
 if _optional_tools_module is not None:
+    AgentSkill = _optional_tools_module.AgentSkill
     OptionalToolBundle = _optional_tools_module.OptionalToolBundle
     OptionalToolContext = _optional_tools_module.OptionalToolContext
     ToolLimitSpec = _optional_tools_module.ToolLimitSpec
 elif _optional_types_module is not None:
+    AgentSkill = _optional_types_module.AgentSkill
     OptionalToolBundle = _optional_types_module.OptionalToolBundle
     OptionalToolContext = _optional_types_module.OptionalToolContext
     ToolLimitSpec = _optional_types_module.ToolLimitSpec
@@ -34,11 +36,19 @@ else:
         tool_name: str | None
         run_limit: int
 
+    @dataclass(frozen=True)
+    class AgentSkill:
+        name: str
+        description: str
+        prompt: Any
+        tool_names: tuple[str, ...] = ()
+
     @dataclass
     class OptionalToolBundle:
         name: str
         tools: list[Any] | None = None
         prompt: str = ""
+        skills: list[AgentSkill] | None = None
         tool_limits: list[ToolLimitSpec] | None = None
 
     @dataclass
@@ -68,7 +78,7 @@ else:
         mark_sent: Any = None
 
 
-PROMPT = """- 合并转发阅读：只有用户主动要求“查看 / 读一下 / 总结 / 分析 / 看看”合并转发消息时，才调用 `read_forward_message`
+SKILL_PROMPT = """- 合并转发阅读：只有用户主动要求“查看 / 读一下 / 总结 / 分析 / 看看”合并转发消息时，才调用 `read_forward_message`
   - 除非用户主动请求查看，不然不要调用本工具；不要因为当前消息里带有合并转发段就自动读取
   - 用户回复某条合并转发并要求查看时，可以不填参数；用户说“上面那个/刚才那个”时，也可以不填参数，工具会尝试找近期合并转发
   - 用户明确指定消息 id 时，把它填入 `target_msg_id`
@@ -970,6 +980,13 @@ async def build(ctx: OptionalToolContext) -> OptionalToolBundle:
     return OptionalToolBundle(
         name="read_forward_message",
         tools=[create_read_forward_tool(ctx)],
-        prompt=PROMPT,
+        skills=[
+            AgentSkill(
+                name="read_forward_message",
+                description="用户明确要求查看、阅读、总结或分析合并转发消息时使用。",
+                prompt=SKILL_PROMPT,
+                tool_names=("read_forward_message",),
+            )
+        ],
         tool_limits=[ToolLimitSpec(tool_name="read_forward_message", run_limit=1)],
     )
