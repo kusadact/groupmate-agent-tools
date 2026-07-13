@@ -20,6 +20,7 @@ from pydantic import BaseModel, Field
 
 try:
     from nonebot_plugin_groupmate_agent.agent.optional_tools import (
+        AgentSkill,
         OptionalToolBundle,
         OptionalToolContext,
         ToolLimitSpec,
@@ -27,6 +28,7 @@ try:
 except Exception:
     try:
         from nonebot_plugin_groupmate_agent.agent.optional_tools.types import (
+            AgentSkill,
             OptionalToolBundle,
             OptionalToolContext,
             ToolLimitSpec,
@@ -37,11 +39,19 @@ except Exception:
             tool_name: str | None
             run_limit: int
 
+        @dataclass(frozen=True)
+        class AgentSkill:
+            name: str
+            description: str
+            prompt: Any
+            tool_names: tuple[str, ...] = ()
+
         @dataclass
         class OptionalToolBundle:
             name: str
             tools: list[Any] | None = None
             prompt: str = ""
+            skills: list[AgentSkill] | None = None
             tool_limits: list[ToolLimitSpec] | None = None
 
         @dataclass
@@ -701,7 +711,7 @@ async def build(ctx: OptionalToolContext) -> OptionalToolBundle:
 
     image_tool = create_image_tool(ctx, config)
 
-    prompt = f"""- AI 生图/修图：可使用 `generate_and_send_image` 调用 AI 图片模型，生成或修改后发送图片
+    skill_prompt = f"""- AI 生图/修图：可使用 `generate_and_send_image` 调用 AI 图片模型，生成或修改后发送图片
   - 触发前必须确认用户有明确的 AI 生图或修图意图，例如“生成图片 / 画图 / 做图 / P图 / 改图 / 编辑图片 / 风格化头像 / 头像二创 / 重绘 / 合成”
   - 用户只是说“发一张图片 / 来张图 / 给我一张图片 / 发图 / 找张图片 / 看图”，不要调用本工具；这些话只表示想收到图片，不等于要求 AI 生成或修改
   - 用户只是要求“发送头像 / 发原头像 / 查看 QQ 头像 / 看看头像”时，不要调用本工具；应调用 `send_qq_avatar_image`
@@ -720,7 +730,14 @@ async def build(ctx: OptionalToolContext) -> OptionalToolBundle:
     return OptionalToolBundle(
         name="gpt_image_agent",
         tools=[image_tool],
-        prompt=prompt,
+        skills=[
+            AgentSkill(
+                name="image_generation",
+                description="用户明确要求 AI 生成或修改图片时使用。",
+                prompt=skill_prompt,
+                tool_names=("generate_and_send_image",),
+            )
+        ],
         tool_limits=[
             ToolLimitSpec(tool_name="generate_and_send_image", run_limit=1),
         ],
