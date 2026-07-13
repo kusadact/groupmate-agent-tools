@@ -12,11 +12,11 @@ from nonebot_plugin_orm import get_session
 from pydantic import BaseModel, Field
 from sqlalchemy import Select, desc, func
 
-from nonebot_plugin_groupmate_agent.agent.optional_tools import OptionalToolBundle, OptionalToolContext, ToolLimitSpec
+from nonebot_plugin_groupmate_agent.agent.optional_tools import AgentSkill, OptionalToolBundle, OptionalToolContext, ToolLimitSpec
 from nonebot_plugin_groupmate_agent.model import ChatHistory
 
 
-PROMPT = """- 聊天统计 SQL：只有当用户明确询问“数量、次数、排行、谁最多、某时间段发了多少”等可聚合统计问题时，才调用 `query_chat_stats_sql`
+SKILL_PROMPT = """- 聊天统计 SQL：只有当用户明确询问“数量、次数、排行、谁最多、某时间段发了多少”等可聚合统计问题时，才调用 `query_chat_stats_sql`
   - 适合：`xx 说了多少次 xx`、`谁最爱说 xx`、`今天谁发言最多`、`我这个月发了多少张图`
   - 不适合：回忆某件事、找历史原话、理解某段上下文、按语义搜索聊天记录；这些继续用 `search_history_context`
   - 不要用 SQL 工具查“发生了什么 / 当时怎么聊的 / 帮我找那段话”
@@ -647,6 +647,13 @@ async def build(ctx: OptionalToolContext) -> OptionalToolBundle:
     return OptionalToolBundle(
         name="chat_stats_sql",
         tools=[create_chat_stats_sql_tool(ctx)],
-        prompt=PROMPT,
+        skills=[
+            AgentSkill(
+                name="chat_statistics",
+                description="用户明确询问聊天数量、次数、排行或时间段统计时使用。",
+                prompt=SKILL_PROMPT,
+                tool_names=("query_chat_stats_sql",),
+            )
+        ],
         tool_limits=[ToolLimitSpec(tool_name="query_chat_stats_sql", run_limit=1)],
     )
