@@ -733,7 +733,7 @@ async def build(ctx: OptionalToolContext) -> OptionalToolBundle:
         skills=[
             AgentSkill(
                 name="image_generation",
-                description="用户明确要求 AI 生成或修改图片时使用。",
+                description="用户明确要求生成或修改图片时使用。",
                 prompt=skill_prompt,
                 tool_names=("generate_and_send_image",),
             )
