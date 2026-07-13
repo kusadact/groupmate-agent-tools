@@ -14,10 +14,12 @@ from pydantic import BaseModel, Field
 _optional_tools_module = sys.modules.get("nonebot_plugin_groupmate_agent.agent.optional_tools")
 _optional_types_module = sys.modules.get("nonebot_plugin_groupmate_agent.agent.optional_tools.types")
 if _optional_tools_module is not None:
+    AgentSkill = _optional_tools_module.AgentSkill
     OptionalToolBundle = _optional_tools_module.OptionalToolBundle
     OptionalToolContext = _optional_tools_module.OptionalToolContext
     ToolLimitSpec = _optional_tools_module.ToolLimitSpec
 elif _optional_types_module is not None:
+    AgentSkill = _optional_types_module.AgentSkill
     OptionalToolBundle = _optional_types_module.OptionalToolBundle
     OptionalToolContext = _optional_types_module.OptionalToolContext
     ToolLimitSpec = _optional_types_module.ToolLimitSpec
@@ -28,11 +30,19 @@ else:
         tool_name: str | None
         run_limit: int
 
+    @dataclass(frozen=True)
+    class AgentSkill:
+        name: str
+        description: str
+        prompt: Any
+        tool_names: tuple[str, ...] = ()
+
     @dataclass
     class OptionalToolBundle:
         name: str
         tools: list[Any] | None = None
         prompt: str = ""
+        skills: list[AgentSkill] | None = None
         tool_limits: list[ToolLimitSpec] | None = None
 
     @dataclass
@@ -78,7 +88,7 @@ def _scene_type_group() -> Any | None:
     return None
 
 
-PROMPT = """- 戳一戳：当用户明确要求 bot 戳一下 / poke / 拍一拍某个群友时，可以调用 `poke_user`
+SKILL_PROMPT = """- 戳一戳：当用户明确要求 bot 戳一下 / poke / 拍一拍某个群友时，可以调用 `poke_user`
   - `target_user_name` 填目标昵称、QQ 号或用户说出的称呼；用户要求“戳我/戳自己”时填“我”
   - 一次只戳一个人；需要戳多人时分别调用，最多调用 3 次
   - 工具会真的发送戳一戳动作，不会发送文字；成功后直接调用 `finish`，不要复述“已戳”
@@ -526,6 +536,13 @@ async def build(ctx: OptionalToolContext) -> OptionalToolBundle:
     return OptionalToolBundle(
         name="poke",
         tools=[create_poke_tool(ctx)],
-        prompt=PROMPT,
+        skills=[
+            AgentSkill(
+                name="poke",
+                description="用户明确要求戳一戳、拍一拍或 poke 群友时使用。",
+                prompt=SKILL_PROMPT,
+                tool_names=("poke_user",),
+            )
+        ],
         tool_limits=[ToolLimitSpec(tool_name="poke_user", run_limit=3)],
     )
