@@ -18,6 +18,7 @@ from pydantic import BaseModel, Field
 
 try:
     from nonebot_plugin_groupmate_agent.agent.optional_tools import (
+        AgentSkill,
         OptionalToolBundle,
         OptionalToolContext,
         ToolLimitSpec,
@@ -25,6 +26,7 @@ try:
 except Exception:
     try:
         from nonebot_plugin_groupmate_agent.agent.optional_tools.types import (
+            AgentSkill,
             OptionalToolBundle,
             OptionalToolContext,
             ToolLimitSpec,
@@ -36,11 +38,19 @@ except Exception:
             tool_name: str | None
             run_limit: int
 
+        @dataclass(frozen=True)
+        class AgentSkill:
+            name: str
+            description: str
+            prompt: Any
+            tool_names: tuple[str, ...] = ()
+
         @dataclass
         class OptionalToolBundle:
             name: str
             tools: list[Any] | None = None
             prompt: str = ""
+            skills: list[AgentSkill] | None = None
             tool_limits: list[ToolLimitSpec] | None = None
 
         @dataclass
@@ -791,7 +801,7 @@ async def build(ctx: OptionalToolContext) -> OptionalToolBundle:
     if ctx.is_cross_user_direct_reply:
         return OptionalToolBundle(name="danbooru_setu")
 
-    prompt = """- Danbooru 搜图：
+    skill_prompt = """- Danbooru 搜图：
   - 只有用户明确要求“setu / 色图 / 涩图 / 搜张图 / 找张图 / 来张图”等搜图意图，并且同时给出了角色、作品或属性 tag 时，才调用 `send_danbooru_setu`
   - 如果用户只是闲聊、评价图片、没有给出可搜索对象，不能调用
   - 调用时只填写 `raw_query`，内容是用户原始搜索词；不要自己翻译 Danbooru tag
@@ -802,6 +812,13 @@ async def build(ctx: OptionalToolContext) -> OptionalToolBundle:
     return OptionalToolBundle(
         name="danbooru_setu",
         tools=[create_danbooru_setu_tool(ctx, config)],
-        prompt=prompt,
+        skills=[
+            AgentSkill(
+                name="danbooru_setu",
+                description="用户明确要求按角色、作品或属性搜索图片时使用。",
+                prompt=skill_prompt,
+                tool_names=("send_danbooru_setu",),
+            )
+        ],
         tool_limits=[ToolLimitSpec(tool_name="send_danbooru_setu", run_limit=1)],
     )

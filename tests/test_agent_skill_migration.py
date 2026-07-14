@@ -22,6 +22,14 @@ TOOL_MANIFEST = {
         "skill": "annual_report",
         "tools": ("generate_and_send_annual_report",),
     },
+    "chat_stats_sql": {
+        "skill": "chat_statistics",
+        "tools": ("query_chat_stats_sql",),
+    },
+    "danbooru_setu": {
+        "skill": "danbooru_setu",
+        "tools": ("send_danbooru_setu",),
+    },
     "find_femboy": {
         "skill": "find_femboy",
         "tools": ("find_femboy_in_recent_chat",),
@@ -34,6 +42,10 @@ TOOL_MANIFEST = {
         "skill": "read_forward_message",
         "tools": ("read_forward_message",),
     },
+    "recall_message": {
+        "skill": "recall_message",
+        "tools": ("recall_message",),
+    },
     "scheduled_tasks": {
         "skill": "scheduled_tasks",
         "tools": ("schedule_message", "schedule_agent_task"),
@@ -41,6 +53,10 @@ TOOL_MANIFEST = {
     "voice": {
         "skill": "voice_synthesis",
         "tools": ("send_voice",),
+    },
+    "poke": {
+        "skill": "poke",
+        "tools": ("poke_user",),
     },
 }
 
